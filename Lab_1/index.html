@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register form</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <form id="form">
+        <input type="text" name="name" placeholder="Ім'я та Прізвище" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Пароль" required>
+        <input type="tel" name="number" placeholder="Номер телефону" required>
+        <input type="date" name="dob" required>
+        <label><input type="radio" name="gender" value="male"> Чоловік</label>
+        <label><input type="radio" name="gender" value="female"> Жінка</label>
+        <select name="country">
+            <option value="Україна">Україна</option>
+            <option value="Польща">Польща</option>
+        </select> 
+        <label ><input type="checkbox"  name="agreement" class="checkbox" required>Погоджуюсь з обробкою даних</label>
+        <input type="file" name="photo">
+        <button type="submit">Зареєструватися</button>
+    </form>
+</body>
+</html>
