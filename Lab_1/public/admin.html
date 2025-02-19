@@ -8,56 +8,59 @@
 </head>
 <body>
     <h1>Панель адміністратора</h1>
-    <div id="clients-list"></div>
-
-    <script>/*
+    <div id="client-list"></div>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const clientsList = document.getElementById('clients-list');
-
-            // Завантаження даних з clients.json
-            fetch('/clients')
-                .then(response => response.json())
-                .then(clients => {
-                    clients.forEach(client => {
-                        const clientDiv = document.createElement('div');
-                        clientDiv.classList.add('client');
-                        clientDiv.innerHTML = `
-                            <span class="client-name">${client.name}</span>
-                            <button class="edit-btn">Редагувати</button>
-                            <button class="delete-btn">Видалити</button>
-                        `;
-                        clientsList.appendChild(clientDiv);
-
-                        // Редагування клієнта
-                        clientDiv.querySelector('.edit-btn').addEventListener('click', () => {
-                            const newName = prompt('Введіть нове ім\'я:', client.name);
-                            if (newName) {
-                                fetch(`/editclient/${client.id}`, {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ name: newName })
+            const clientList = document.getElementById('client-list');
+        
+            function loadClients() {
+                fetch('/clients')
+                    .then(response => response.json())
+                    .then(clients => {
+                        clientList.innerHTML = '';
+                        clients.forEach(client => {
+                            const clientDiv = document.createElement('div');
+                            clientDiv.className = 'client';
+                            clientDiv.innerHTML = `
+                                <div class="client-row">
+                                    <span class="client-info">${client.name} (${client.email})</span>
+                                    <input type="text" class="edit-name" placeholder="Нове ім'я">
+                                    <button class="edit-btn">Редагувати</button>
+                                    <button class="delete-btn">Видалити</button>
+                                </div>
+                            `;
+                            
+                            clientDiv.querySelector('.edit-btn').addEventListener('click', () => {
+                                const newName = clientDiv.querySelector('.edit-name').value;
+                                if (newName) {
+                                    fetch('/edituser', {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ email: client.email, newName })
+                                    })
+                                    .then(response => response.json())
+                                    .then(() => loadClients());
+                                }
+                            });
+        
+                            clientDiv.querySelector('.delete-btn').addEventListener('click', () => {
+                                fetch('/deleteuser', {
+                                    method: 'DELETE',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ email: client.email })
                                 })
                                 .then(response => response.json())
-                                .then(updatedClient => {
-                                    clientDiv.querySelector('.client-name').textContent = updatedClient.name;
-                                });
-                            }
-                        });
-
-                        // Видалення клієнта
-                        clientDiv.querySelector('.delete-btn').addEventListener('click', () => {
-                            fetch(`/deleteclient/${client.id}`, {
-                                method: 'DELETE'
-                            })
-                            .then(() => {
-                                clientsList.removeChild(clientDiv);
+                                .then(() => loadClients());
                             });
+        
+                            clientList.appendChild(clientDiv);
                         });
                     });
-                });
-        });*/
+            }
+        
+            loadClients();
+        });
+        
     </script>
 </body>
 </html>
