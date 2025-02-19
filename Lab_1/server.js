@@ -1,22 +1,27 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
 
 const app = express();
-app.use(express.json());
-
-const HOST = 'localhost';
 const PORT = 3000;
 const FILE_PATH = './clients.json';
 
-// Якщо файлу немає — створюємо порожній JSON
+app.use(express.json());
+app.use(express.static('public')); // Для збереження фото
+
 if (!fs.existsSync(FILE_PATH)) {
     fs.writeFileSync(FILE_PATH, '[]', 'utf-8');
 }
 
-// Обслуговування статичних файлів з папки public
-app.use(express.static(path.join(__dirname, 'public')));
-
+// Налаштування завантаження фото
+const storage = multer.diskStorage({
+    destination: './public/uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
 app.get('/', (req, res) => {
     res.redirect('/registration');
 });
@@ -28,106 +33,76 @@ app.get('/registration', (req, res) => {
 app.get('/adminpanel', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
-
-// Отримання списку всіх клієнтів
+// **Отримання клієнтів**
 app.get('/clients', (req, res) => {
     fs.readFile(FILE_PATH, 'utf-8', (err, data) => {
-        if (err) {
-            console.error('Помилка читання файлу:', err);
-            return res.status(500).json({ message: 'Помилка читання файлу' });
+        if (err) return res.status(500).json({ message: 'Помилка читання файлу' });
+
+        try {
+            const users = JSON.parse(data);
+            res.json(users.map(({ name, email }) => ({ name, email }))); // Відправляємо лише ім'я та email
+        } catch {
+            res.status(500).json({ message: 'Помилка JSON' });
         }
-        res.json(JSON.parse(data));
     });
 });
 
-// Збереження нового користувача
-app.post('/saveuser', (req, res) => {
-    const userInfo = req.body;
-    console.log('Новий користувач:', userInfo);
-
+// **Додавання клієнта**
+app.post('/saveuser', upload.single('photo'), (req, res) => {
+    const { name, email } = req.body;
+    
     fs.readFile(FILE_PATH, 'utf-8', (err, data) => {
-        if (err) {
-            console.error('Помилка читання файлу:', err);
-            return res.status(500).json({ message: 'Помилка читання файлу' });
-        }
+        if (err) return res.status(500).json({ message: 'Помилка читання файлу' });
 
-        let users = [];
-        try {
-            users = JSON.parse(data);
-            if (!Array.isArray(users)) users = [];
-        } catch (parseErr) {
-            console.error('Помилка парсингу JSON:', parseErr);
-            users = [];
-        }
-
-        users.push(userInfo);
+        let users = JSON.parse(data || '[]');
+        users.push({ name, email });
 
         fs.writeFile(FILE_PATH, JSON.stringify(users, null, 4), (err) => {
-            if (err) {
-                console.error('Помилка запису у файл:', err);
-                return res.status(500).json({ message: 'Помилка збереження даних' });
-            }
-            res.json({ message: 'Користувач успішно збережений!' });
+            if (err) return res.status(500).json({ message: 'Помилка запису файлу' });
+            res.json({ message: 'Користувач збережений!' });
         });
     });
 });
 
-// Редагування імені користувача
+// **Редагування клієнта**
 app.put('/edituser', (req, res) => {
     const { email, newName } = req.body;
 
     fs.readFile(FILE_PATH, 'utf-8', (err, data) => {
-        if (err) {
-            console.error('Помилка читання файлу:', err);
-            return res.status(500).json({ message: 'Помилка читання файлу' });
+        if (err) return res.status(500).json({ message: 'Помилка читання файлу' });
+
+        let users = JSON.parse(data || '[]');
+        const user = users.find(u => u.email === email);
+
+        if (user) {
+            user.name = newName;
+            fs.writeFile(FILE_PATH, JSON.stringify(users, null, 4), (err) => {
+                if (err) return res.status(500).json({ message: 'Помилка запису файлу' });
+                res.json({ message: 'Користувач оновлений!' });
+            });
+        } else {
+            res.status(404).json({ message: 'Користувача не знайдено' });
         }
-
-        let users = JSON.parse(data);
-        let user = users.find(u => u.email === email);
-
-        if (!user) {
-            return res.status(404).json({ message: 'Користувач не знайдений' });
-        }
-
-        user.name = newName;
-
-        fs.writeFile(FILE_PATH, JSON.stringify(users, null, 4), (err) => {
-            if (err) {
-                console.error('Помилка запису у файл:', err);
-                return res.status(500).json({ message: 'Помилка збереження даних' });
-            }
-            res.json({ message: 'Ім’я успішно оновлено' });
-        });
     });
 });
 
-// Видалення користувача
+// **Видалення клієнта**
 app.delete('/deleteuser', (req, res) => {
     const { email } = req.body;
 
     fs.readFile(FILE_PATH, 'utf-8', (err, data) => {
-        if (err) {
-            console.error('Помилка читання файлу:', err);
-            return res.status(500).json({ message: 'Помилка читання файлу' });
-        }
+        if (err) return res.status(500).json({ message: 'Помилка читання файлу' });
 
-        let users = JSON.parse(data);
-        const filteredUsers = users.filter(u => u.email !== email);
+        let users = JSON.parse(data || '[]');
+        const newUsers = users.filter(u => u.email !== email);
 
-        if (users.length === filteredUsers.length) {
-            return res.status(404).json({ message: 'Користувач не знайдений' });
-        }
-
-        fs.writeFile(FILE_PATH, JSON.stringify(filteredUsers, null, 4), (err) => {
-            if (err) {
-                console.error('Помилка запису у файл:', err);
-                return res.status(500).json({ message: 'Помилка збереження даних' });
-            }
-            res.json({ message: 'Користувач успішно видалений' });
+        fs.writeFile(FILE_PATH, JSON.stringify(newUsers, null, 4), (err) => {
+            if (err) return res.status(500).json({ message: 'Помилка запису файлу' });
+            res.json({ message: 'Користувач видалений!' });
         });
     });
 });
 
-app.listen(PORT, HOST, () => {
-    console.log(`Сервер працює на http://${HOST}:${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Сервер працює на http://localhost:${PORT}`);
 });

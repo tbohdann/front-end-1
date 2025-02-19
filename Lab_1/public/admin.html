@@ -18,6 +18,7 @@
                     .then(response => response.json())
                     .then(clients => {
                         clientList.innerHTML = '';
+        
                         clients.forEach(client => {
                             const clientDiv = document.createElement('div');
                             clientDiv.className = 'client';
@@ -29,7 +30,8 @@
                                     <button class="delete-btn">Видалити</button>
                                 </div>
                             `;
-                            
+        
+                            // **Редагування**
                             clientDiv.querySelector('.edit-btn').addEventListener('click', () => {
                                 const newName = clientDiv.querySelector('.edit-name').value;
                                 if (newName) {
@@ -43,6 +45,7 @@
                                 }
                             });
         
+                            // **Видалення**
                             clientDiv.querySelector('.delete-btn').addEventListener('click', () => {
                                 fetch('/deleteuser', {
                                     method: 'DELETE',
@@ -55,7 +58,8 @@
         
                             clientList.appendChild(clientDiv);
                         });
-                    });
+                    })
+                    .catch(error => console.error('Помилка завантаження клієнтів:', error));
             }
         
             loadClients();
