@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 app.get('/', (req, res) => {
     res.redirect('/registration');
-});
+}); 
 
 app.get('/registration', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -36,13 +36,16 @@ app.get('/adminpanel', (req, res) => {
 // **Отримання клієнтів**
 app.get('/clients', (req, res) => {
     fs.readFile(FILE_PATH, 'utf-8', (err, data) => {
-        if (err) return res.status(500).json({ message: 'Помилка читання файлу' });
-
+        if (err) {
+            console.error('Помилка читання файлу:', err);
+            return res.status(500).json({ message: 'Помилка отримання клієнтів' });
+        }
         try {
-            const users = JSON.parse(data);
-            res.json(users.map(({ name, email }) => ({ name, email }))); // Відправляємо лише ім'я та email
-        } catch {
-            res.status(500).json({ message: 'Помилка JSON' });
+            const clients = JSON.parse(data);
+            res.json(clients);
+        } catch (parseErr) {
+            console.error('Помилка парсингу JSON:', parseErr);
+            res.status(500).json({ message: 'Некоректний формат файлу' });
         }
     });
 });

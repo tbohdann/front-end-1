@@ -1,35 +1,6 @@
 [
     {
-        "name": "PELIAK NELIA",
-        "email": "btuseth6@gmail.com",
-        "password": "rwerwer",
-        "number": "0995071510",
-        "dob": "3444-02-23",
-        "gender": "female",
-        "country": "Україна",
-        "agreement": "on",
-        "photo": {}
-    },
-    {
-        "name": "Іванов Іван",
-        "email": "btuseth6@gmail.com",
-        "password": "кпукп34",
-        "number": "0976532109",
-        "dob": "8867-07-08",
-        "gender": "male",
-        "country": "Україна",
-        "agreement": "on",
-        "photo": "/uploads/1739978374831.jpg"
-    },
-    {
-        "name": "Іванов Іван",
-        "email": "btuseth6@gmail.com",
-        "password": "кпукп34",
-        "number": "0976532109",
-        "dob": "8867-07-08",
-        "gender": "male",
-        "country": "Україна",
-        "agreement": "on",
-        "photo": "/uploads/1739978439555.jpg"
+        "name": "Peliak Oleh",
+        "email": "bogdanpelyak@gmail.com"
     }
 ]

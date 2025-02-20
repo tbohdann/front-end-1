@@ -30,8 +30,8 @@
                                     <button class="delete-btn">Видалити</button>
                                 </div>
                             `;
-        
-                            // **Редагування**
+    
+                            // Редагування
                             clientDiv.querySelector('.edit-btn').addEventListener('click', () => {
                                 const newName = clientDiv.querySelector('.edit-name').value;
                                 if (newName) {
@@ -45,7 +45,7 @@
                                 }
                             });
         
-                            // **Видалення**
+                            // Видалення
                             clientDiv.querySelector('.delete-btn').addEventListener('click', () => {
                                 fetch('/deleteuser', {
                                     method: 'DELETE',
